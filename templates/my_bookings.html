@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}My Bookings{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+  <div>
+    <h1 style="font-size: 2rem; font-weight: 700; letter-spacing: -0.02em;" id="my-bookings-heading">My Reservations</h1>
+    <p style="color: var(--text-muted); font-size: 0.95rem;">Track personal booking status, view detailed tickets, or cancel eligible reservations.</p>
+  </div>
+  <a href="{{ url_for('user_bp.shows') }}" class="btn btn-primary btn-sm" id="btn-book-new-show">
+    + Book New Show
+  </a>
+</div>
+
+<div class="table-wrapper">
+  <table class="table" id="my-bookings-table">
+    <thead>
+      <tr>
+        <th>Booking ID</th>
+        <th>Show Item</th>
+        <th>Quantity</th>
+        <th>Grand Total</th>
+        <th>Status</th>
+        <th>Booking Date</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for res in reservations %}
+        <tr id="row-res-{{ res.id }}">
+          <td>
+            <a href="{{ url_for('user_bp.booking_details', booking_id=res.id) }}" class="mono" style="font-weight: 600; color: var(--accent-cyan); text-decoration: none;" id="link-res-{{ res.id }}">
+              {{ res.id }}
+            </a>
+          </td>
+          <td>
+            {% if res.items and res.items[0].resource %}
+              <strong>{{ res.items[0].resource.name }}</strong>
+              <div style="font-size: 0.8rem; color: var(--text-dim);">{{ res.items[0].resource_id }}</div>
+            {% else %}
+              <span>N/A</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if res.items %}
+              <span>{{ res.items[0].quantity }} seat(s)</span>
+            {% else %}
+              <span>-</span>
+            {% endif %}
+          </td>
+          <td>
+            <span class="mono" style="font-weight: 600;">Rs.{{ "%.2f"|format(res.total_amount) }}</span>
+          </td>
+          <td>
+            <span class="badge badge-{{ res.status|lower }}" id="badge-status-{{ res.id }}">
+              {{ res.status }}
+            </span>
+          </td>
+          <td>
+            <span style="font-size: 0.88rem; color: var(--text-muted);">
+              {{ res.created_at.strftime('%Y-%m-%d %H:%M') if res.created_at else res.booking_date }}
+            </span>
+          </td>
+          <td>
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+              <a href="{{ url_for('user_bp.booking_details', booking_id=res.id) }}" class="btn btn-secondary btn-sm" id="btn-details-{{ res.id }}">
+                View Details
+              </a>
+
+              {% if res.is_eligible_for_cancellation() %}
+                <form method="POST" action="{{ url_for('user_bp.cancel_booking', booking_id=res.id) }}" onsubmit="return confirm('Are you sure you want to cancel this booking? This will restore seats to inventory.');" style="display: inline;">
+                  <button type="submit" class="btn btn-danger btn-sm" id="btn-cancel-{{ res.id }}">
+                    Cancel Booking
+                  </button>
+                </form>
+              {% else %}
+                <button class="btn btn-outline btn-sm" disabled title="Only CONFIRMED bookings can be cancelled." id="btn-cancel-disabled-{{ res.id }}">
+                  Non-Cancellable
+                </button>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+      {% else %}
+        <tr>
+          <td colspan="7" style="text-align: center; padding: 3rem; color: var(--text-muted);">
+            You have no active or past bookings. <a href="{{ url_for('user_bp.shows') }}" style="color: var(--accent-cyan);">Browse shows now</a>.
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

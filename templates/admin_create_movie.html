@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}Add New Movie Show - Admin{% endblock %}
+
+{% block content %}
+<div style="max-width: 720px; margin: 0 auto;">
+  <div style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+    <div>
+      <span class="role-tag admin" style="margin-bottom: 0.5rem; display: inline-block;">Inventory Management</span>
+      <h1 style="font-size: 2rem; font-weight: 700; letter-spacing: -0.02em;">Add New Movie Show</h1>
+      <p style="color: var(--text-muted); font-size: 0.95rem;">Create a new movie listing, set pricing, seat availability, and showtime schedule.</p>
+    </div>
+    <a href="{{ url_for('admin_bp.admin_dashboard') }}" class="btn btn-secondary btn-sm">&larr; Back to Dashboard</a>
+  </div>
+
+  <div class="card">
+    <form method="POST" action="{{ url_for('admin_bp.create_movie') }}" id="create-movie-form">
+      
+      <div class="form-group">
+        <label for="movie-name" class="form-label">Movie Title / Name *</label>
+        <input type="text" id="movie-name" name="name" class="form-control" placeholder="e.g. Demon Slayer: Infinity Castle" required autofocus>
+        <div class="form-help">Enter the official title of the movie.</div>
+      </div>
+
+      <div class="grid-2" style="margin-bottom: 0;">
+        <div class="form-group">
+          <label for="movie-id" class="form-label">Show / Resource ID</label>
+          <input type="text" id="movie-id" name="id" class="form-control mono" value="{{ suggested_id }}" placeholder="{{ suggested_id }}">
+          <div class="form-help">Unique ID (e.g. {{ suggested_id }}). Leave default for auto-increment.</div>
+        </div>
+
+        <div class="form-group">
+          <label for="movie-status" class="form-label">Listing Status</label>
+          <select id="movie-status" name="status" class="form-control">
+            <option value="ACTIVE" selected>ACTIVE (Bookable by users)</option>
+            <option value="INACTIVE">INACTIVE (Hidden / Draft)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-bottom: 0;">
+        <div class="form-group">
+          <label for="movie-rate" class="form-label">Ticket Rate (Rs.) *</label>
+          <input type="number" step="0.01" min="1" id="movie-rate" name="rate" class="form-control mono" placeholder="499.00" required>
+          <div class="form-help">Base ticket price before surcharge rules.</div>
+        </div>
+
+        <div class="form-group">
+          <label for="movie-availability" class="form-label">Total Seat Capacity *</label>
+          <input type="number" min="0" max="500" id="movie-availability" name="availability" class="form-control mono" placeholder="25" required>
+          <div class="form-help">Number of available bookable seats.</div>
+        </div>
+      </div>
+
+      <div class="card" style="background: rgba(0,0,0,0.25); border: 1px solid var(--border-subtle); padding: 1.25rem; margin-bottom: 1.5rem;">
+        <h3 style="font-size: 1.05rem; font-weight: 600; margin-bottom: 1rem; color: var(--accent-cyan);">📅 Showtime &amp; Screen Schedule</h3>
+        
+        <div class="grid-2" style="margin-bottom: 0;">
+          <div class="form-group">
+            <label for="show-date" class="form-label">Show Date *</label>
+            <input type="date" id="show-date" name="show_date" class="form-control" required value="2026-10-12">
+          </div>
+
+          <div class="form-group">
+            <label for="show-time" class="form-label">Show Time *</label>
+            <input type="text" id="show-time" name="show_time" class="form-control" placeholder="07:00 PM" required value="07:00 PM">
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0;">
+          <label for="category" class="form-label">Screen &amp; Experience Category *</label>
+          <input type="text" id="category" name="category" class="form-control" placeholder="e.g. Evening Show - Screen 1 or IMAX 3D" required value="Evening Show - Screen 1">
+          <div class="form-help">Screen number, hall type (IMAX, 4DX, VIP, Dolby Cinema).</div>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem;">
+        <a href="{{ url_for('admin_bp.admin_dashboard') }}" class="btn btn-secondary">Cancel</a>
+        <button type="submit" class="btn btn-primary" id="btn-save-movie">
+          ➕ Create Movie Show
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,29 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Pytest / tests cache
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# SQLite databases (optional, but good to keep clean if temp/instance)
+# database.db
+
+# IDE / OS specific
+.vscode/
+.idea/
+*.swp
+*.swo
+Thumbs.db
+.DS_Store

@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}User Dashboard{% endblock %}
+
+{% block content %}
+<div class="hero">
+  <h1 class="hero-title" id="dashboard-welcome">Welcome, {{ session_name }}</h1>
+  <p class="hero-subtitle">
+    Browse movie shows, check real-time seat availability, make instant bookings, and track your reservations.
+  </p>
+</div>
+
+<div class="grid-2" style="margin-bottom: 2.5rem;">
+  <!-- Card 1: Search & Browse Shows -->
+  <div class="card" id="card-search-shows">
+    <div style="font-size: 2.5rem; margin-bottom: 1rem;">🔍</div>
+    <h2 class="card-title">Search & Browse Shows</h2>
+    <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.95rem;">
+      Search active movie shows, view show identifiers, schedules, categories, seat rates, and live availability.
+    </p>
+    <a href="{{ url_for('user_bp.shows') }}" class="btn btn-primary" id="btn-browse-shows">
+      View Available Shows &rarr;
+    </a>
+  </div>
+
+  <!-- Card 2: My Bookings -->
+  <div class="card" id="card-my-bookings">
+    <div style="font-size: 2.5rem; margin-bottom: 1rem;">🎟️</div>
+    <h2 class="card-title">My Bookings</h2>
+    <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.95rem;">
+      Review your existing reservations, check current confirmation status, or cancel eligible bookings.
+    </p>
+    <a href="{{ url_for('user_bp.my_bookings') }}" class="btn btn-secondary" id="btn-view-bookings">
+      Manage My Bookings ({{ user_bookings_count }}) &rarr;
+    </a>
+  </div>
+</div>
+
+<!-- Quick Search Form -->
+<div class="card" id="card-quick-search" style="margin-top: 1rem;">
+  <h3 style="font-size: 1.15rem; font-weight: 600; margin-bottom: 1rem;">Check Show Availability</h3>
+  <form method="GET" action="{{ url_for('user_bp.shows') }}" style="display: flex; gap: 1rem; flex-wrap: wrap;">
+    <input type="text" name="search" id="input-quick-search" class="form-control" placeholder="Search by movie or show ID (e.g. 'Seat A' or 'R101')..." style="flex: 1; min-width: 250px;">
+    <button type="submit" class="btn btn-primary" id="btn-quick-search-submit">Search Availability</button>
+  </form>
+</div>
+{% endblock %}

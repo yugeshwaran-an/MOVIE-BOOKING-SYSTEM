@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Error Encountered{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 3rem auto; text-align: center;">
+  <div class="card" id="error-card" style="border-color: rgba(244, 63, 94, 0.4);">
+    <div style="font-size: 3.5rem; margin-bottom: 1rem;">⚠️</div>
+    
+    <div class="badge badge-cancelled" style="margin-bottom: 1rem;" id="error-status-code">
+      {{ status_code|default('Validation Notice') }}
+    </div>
+
+    <h1 class="card-title" style="color: var(--accent-rose); font-size: 1.6rem;" id="error-title">
+      Action Rejected
+    </h1>
+
+    <div style="background: rgba(0, 0, 0, 0.25); border-radius: var(--radius-md); padding: 1.25rem; margin: 1.5rem 0; border: 1px solid var(--border-subtle);">
+      <p style="font-size: 1.05rem; font-weight: 500; color: #f8fafc;" id="error-message-text">
+        {{ error_message|default('An unexpected error or validation violation occurred.') }}
+      </p>
+    </div>
+
+    <p style="color: var(--text-dim); font-size: 0.88rem; margin-bottom: 2rem;">
+      Business rules and transaction safety invariants prevented an invalid state transition or partial update.
+    </p>
+
+    <div style="display: flex; gap: 1rem; justify-content: center;">
+      <a href="javascript:history.back()" class="btn btn-secondary" id="btn-error-back">
+        &larr; Go Back &amp; Retry
+      </a>
+      <a href="{{ url_for('user_bp.dashboard') if not is_admin else url_for('admin_bp.admin_dashboard') }}" class="btn btn-primary" id="btn-error-home">
+        Return to Home
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

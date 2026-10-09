@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+
+{% block title %}Book Tickets - {{ resource.name }}{% endblock %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 0 auto;">
+  <div style="margin-bottom: 1.5rem;">
+    <a href="{{ url_for('user_bp.shows') }}" class="btn btn-outline btn-sm" id="btn-back-shows">
+      &larr; Back to Shows
+    </a>
+  </div>
+
+  <div class="card" id="booking-card">
+    <div style="border-bottom: 1px solid var(--border-subtle); padding-bottom: 1.5rem; margin-bottom: 1.5rem;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
+        <div>
+          <span class="mono" style="color: var(--accent-cyan); font-weight: 600;">{{ resource.id }}</span>
+          <h1 class="card-title" style="margin-top: 0.25rem;" id="booking-show-name">{{ resource.name }}</h1>
+          <p style="color: var(--text-muted); font-size: 0.95rem;">
+            {% if resource.schedules %}
+              {{ resource.schedules[0].date }} &bull; {{ resource.schedules[0].time }} &bull; {{ resource.schedules[0].category }}
+            {% else %}
+              Standard Screening
+            {% endif %}
+          </p>
+        </div>
+        <div style="text-align: right;">
+          <div style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase;">Ticket Rate</div>
+          <div style="font-size: 1.5rem; font-weight: 700; color: #fff;" class="mono" id="show-rate-display">
+            Rs.{{ "%.2f"|format(resource.rate) }}
+          </div>
+          <div style="font-size: 0.82rem; color: var(--accent-emerald);">
+            {{ resource.availability }} seats currently available
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Booking Form -->
+    <form method="POST" action="{{ url_for('user_bp.confirm_booking') }}" id="form-booking">
+      <input type="hidden" name="resource_id" value="{{ resource.id }}" id="input-resource-id">
+      <input type="hidden" id="show-rate" value="{{ resource.rate }}">
+
+      <div class="grid-2">
+        <!-- Quantity selection (BR1: 1 to 5 seats only) -->
+        <div class="form-group">
+          <label for="booking-quantity" class="form-label">
+            Quantity (Seats): <span style="color: var(--accent-rose);">*</span>
+          </label>
+          <input type="number" 
+                 name="quantity" 
+                 id="booking-quantity" 
+                 class="form-control" 
+                 value="1" 
+                 min="1" 
+                 max="5" 
+                 step="1"
+                 required>
+          <p class="form-help">BR1 Rule: Minimum 1 seat, Maximum 5 seats per booking.</p>
+        </div>
+
+        <!-- Booking / Journey Date (BR5) -->
+        <div class="form-group">
+          <label for="booking-date" class="form-label">
+            Booking / Journey Date: <span style="color: var(--accent-rose);">*</span>
+          </label>
+          <input type="date" 
+                 name="booking_date" 
+                 id="booking-date" 
+                 class="form-control" 
+                 value="{% if resource.schedules %}{{ resource.schedules[0].date }}{% else %}2026-10-10{% endif %}" 
+                 required>
+          <p class="form-help">Must be a valid scheduled screening date.</p>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <!-- Customer Name (BR5) -->
+        <div class="form-group">
+          <label for="booking-name" class="form-label">
+            Customer Full Name: <span style="color: var(--accent-rose);">*</span>
+          </label>
+          <input type="text" 
+                 name="name" 
+                 id="booking-name" 
+                 class="form-control" 
+                 placeholder="e.g. John Doe" 
+                 value="{{ session_name }}" 
+                 required>
+          <p class="form-help">BR5: Name cannot be blank.</p>
+        </div>
+
+        <!-- Phone Number (BR5: Exactly 10 digits) -->
+        <div class="form-group">
+          <label for="booking-phone" class="form-label">
+            Phone Number (10 digits): <span style="color: var(--accent-rose);">*</span>
+          </label>
+          <input type="tel" 
+                 name="phone" 
+                 id="booking-phone" 
+                 class="form-control" 
+                 placeholder="9876543210" 
+                 pattern="[0-9]{10}"
+                 maxlength="10" 
+                 required>
+          <p class="form-help">BR5: Exactly 10 digits (e.g., 9876543210).</p>
+        </div>
+      </div>
+
+      <!-- Identity / Reference Information (BR5) -->
+      <div class="form-group">
+        <label for="booking-reference" class="form-label">
+          Identity / Reference ID: <span style="color: var(--accent-rose);">*</span>
+        </label>
+        <input type="text" 
+               name="reference_info" 
+               id="booking-reference" 
+               class="form-control" 
+               placeholder="e.g. GOV-ID-1234 or Student Card Ref" 
+               value="ID-REF-{{ session_username|upper }}-99"
+               required>
+        <p class="form-help">BR5: Required reference identification info.</p>
+      </div>
+
+      <!-- Real-time Fare & Grand Total Calculation Box (BR4) -->
+      <div class="pricing-box" id="pricing-breakdown">
+        <h4 style="font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 0.75rem;">
+          Fare Breakdown & Calculations (BR4)
+        </h4>
+
+        <div class="pricing-row">
+          <span>Base Total (<span id="calc-qty-note">Rate &times; Quantity</span>):</span>
+          <span class="mono" id="display-base-amount">Rs. {{ "%.2f"|format(base_amount) }}</span>
+        </div>
+
+        <div class="pricing-row">
+          <span>
+            Booking Charge:
+            <span style="font-size: 0.78rem; color: var(--text-dim); display: block;">
+              (Rs.50 if Base &lt; Rs.1000, Rs.0 if Base &ge; Rs.1000)
+            </span>
+          </span>
+          <span class="mono" id="display-booking-charge">Rs. {{ "%.2f"|format(booking_charge) }}</span>
+        </div>
+
+        <div class="pricing-row total">
+          <span>Grand Total:</span>
+          <span class="mono" style="color: var(--accent-cyan);" id="display-grand-total">
+            Rs. {{ "%.2f"|format(grand_total) }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
+        <a href="{{ url_for('user_bp.shows') }}" class="btn btn-secondary" id="btn-cancel-booking">
+          Cancel
+        </a>
+        <button type="submit" class="btn btn-primary" id="btn-confirm-reservation">
+          Confirm Reservation &rarr;
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

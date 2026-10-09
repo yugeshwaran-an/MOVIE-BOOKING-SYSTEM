@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}Reservation Confirmed - {{ reservation.id }}{% endblock %}
+
+{% block content %}
+<div style="max-width: 750px; margin: 1rem auto;">
+  <div class="card" id="success-card" style="border-color: rgba(16, 185, 129, 0.4);">
+    <div style="text-align: center; margin-bottom: 2rem;">
+      <span style="font-size: 3.5rem;">🎉</span>
+      <h1 class="card-title" style="color: var(--accent-emerald); font-size: 1.85rem; margin-top: 0.5rem;" id="success-title">
+        Reservation Confirmed!
+      </h1>
+      <p style="color: var(--text-muted); font-size: 0.95rem;">
+        Your movie tickets have been secured and logged into the system.
+      </p>
+    </div>
+
+    <!-- Summary Details Table -->
+    <div style="background: rgba(0, 0, 0, 0.25); border-radius: var(--radius-md); padding: 1.5rem; margin-bottom: 2rem; border: 1px solid var(--border-subtle);">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;">
+        <div>
+          <span style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-dim); display: block;">Booking ID</span>
+          <span class="mono" style="font-size: 1.15rem; font-weight: 700; color: var(--accent-cyan);" id="disp-booking-id">
+            {{ reservation.id }}
+          </span>
+        </div>
+
+        <div>
+          <span style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-dim); display: block;">Booking Status</span>
+          <span class="badge badge-{{ reservation.status|lower }}" id="disp-booking-status">
+            {{ reservation.status }}
+          </span>
+        </div>
+
+        <div>
+          <span style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-dim); display: block;">Movie / Resource</span>
+          <strong id="disp-movie-name">
+            {% if item and item.resource %}
+              {{ item.resource.name }} ({{ item.resource_id }})
+            {% else %}
+              Show
+            {% endif %}
+          </strong>
+        </div>
+
+        <div>
+          <span style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-dim); display: block;">Reserved Seats</span>
+          <strong id="disp-quantity">
+            {% if item %}{{ item.quantity }}{% else %}1{% endif %} Seats
+          </strong>
+        </div>
+
+        <div>
+          <span style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-dim); display: block;">Booked For / Date</span>
+          <span>{{ reservation.customer_name }} &bull; {{ reservation.booking_date }}</span>
+        </div>
+
+        <div>
+          <span style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-dim); display: block;">Customer Phone</span>
+          <span class="mono">{{ reservation.customer_phone }}</span>
+        </div>
+      </div>
+
+      <!-- Financial Snapshot Breakdown (BR3, BR4) -->
+      <div class="pricing-box" style="margin-top: 1.5rem; margin-bottom: 0;">
+        <h4 style="font-size: 0.85rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.75rem;">
+          Financial Snapshot Breakdown
+        </h4>
+        <div class="pricing-row">
+          <span>Rate Snapshot per seat:</span>
+          <span class="mono" id="disp-rate-snapshot">Rs. {{ "%.2f"|format(item.rate_snapshot if item else 0) }}</span>
+        </div>
+        <div class="pricing-row">
+          <span>Base Amount:</span>
+          <span class="mono" id="disp-base-amount">Rs. {{ "%.2f"|format(item.base_amount if item else 0) }}</span>
+        </div>
+        <div class="pricing-row">
+          <span>Booking Charge:</span>
+          <span class="mono" id="disp-booking-charge">Rs. {{ "%.2f"|format(item.booking_charge if item else 0) }}</span>
+        </div>
+        <div class="pricing-row total">
+          <span>Grand Total:</span>
+          <span class="mono" style="color: var(--accent-emerald);" id="disp-grand-total">
+            Rs. {{ "%.2f"|format(reservation.total_amount) }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div style="display: flex; gap: 1rem; justify-content: center;">
+      <a href="{{ url_for('user_bp.my_bookings') }}" class="btn btn-primary" id="btn-goto-my-bookings">
+        View In My Bookings &rarr;
+      </a>
+      <a href="{{ url_for('user_bp.shows') }}" class="btn btn-secondary" id="btn-book-another">
+        Browse Other Shows
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

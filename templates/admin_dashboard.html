@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+
+{% block title %}Administrator Dashboard{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 2rem;">
+  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+    <div>
+      <span class="role-tag admin" style="margin-bottom: 0.5rem; display: inline-block;">Administrative Control Console</span>
+      <h1 style="font-size: 2rem; font-weight: 700; letter-spacing: -0.02em;" id="admin-heading">Booking Operations &amp; Movie Management</h1>
+      <p style="color: var(--text-muted); font-size: 0.95rem;">
+        Manage movie listings, create new shows, view transactions, and advance booking states.
+      </p>
+    </div>
+    <div style="display: flex; gap: 0.75rem;">
+      <a href="{{ url_for('admin_bp.create_movie') }}" class="btn btn-primary" id="btn-add-movie-top">
+        ➕ Add New Movie Show
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- All Bookings Transaction Table -->
+<div class="card" style="margin-bottom: 2.5rem;" id="admin-bookings-card">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+    <h2 class="card-title" style="margin-bottom: 0; font-size: 1.25rem;">All Customer Bookings (Transactions)</h2>
+    <span style="font-size: 0.9rem; color: var(--text-muted);">Total Transactions: {{ reservations|length }}</span>
+  </div>
+
+  <div class="table-wrapper">
+    <table class="table" id="admin-bookings-table">
+      <thead>
+        <tr>
+          <th>Booking ID</th>
+          <th>User Account</th>
+          <th>Movie / Show</th>
+          <th>Quantity</th>
+          <th>Grand Total</th>
+          <th>Current Status</th>
+          <th>Advance Status (BR8 Strict Transition)</th>
+          <th>Details</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for res in reservations %}
+          {% set next_statuses = res.get_valid_next_statuses() %}
+          <tr id="admin-row-{{ res.id }}">
+            <td>
+              <a href="{{ url_for('user_bp.booking_details', booking_id=res.id) }}" class="mono" style="font-weight: 600; color: var(--accent-cyan); text-decoration: none;">
+                {{ res.id }}
+              </a>
+            </td>
+            <td>
+              <strong>{{ res.user.username }}</strong>
+              <div style="font-size: 0.8rem; color: var(--text-dim);">{{ res.customer_name }}</div>
+            </td>
+            <td>
+              {% if res.items and res.items[0].resource %}
+                <strong>{{ res.items[0].resource.name }}</strong>
+                <div class="mono" style="font-size: 0.78rem; color: var(--text-dim);">{{ res.items[0].resource_id }}</div>
+              {% else %}
+                -
+              {% endif %}
+            </td>
+            <td>
+              {% if res.items %}{{ res.items[0].quantity }} seat(s){% else %}-{% endif %}
+            </td>
+            <td>
+              <span class="mono" style="font-weight: 600;">Rs.{{ "%.2f"|format(res.total_amount) }}</span>
+            </td>
+            <td>
+              <span class="badge badge-{{ res.status|lower }}" id="admin-badge-{{ res.id }}">
+                {{ res.status }}
+              </span>
+            </td>
+            <td>
+              {% if next_statuses %}
+                <form method="POST" action="{{ url_for('admin_bp.update_booking_status', booking_id=res.id) }}" style="display: flex; gap: 0.5rem; align-items: center;" id="form-status-{{ res.id }}">
+                  <select name="new_status" class="form-control" style="padding: 0.35rem 0.65rem; font-size: 0.82rem; width: auto;" id="select-status-{{ res.id }}" required>
+                    {% for nxt in next_statuses %}
+                      <option value="{{ nxt }}">&rarr; {{ nxt }}</option>
+                    {% endfor %}
+                  </select>
+                  <button type="submit" class="btn btn-primary btn-sm" id="btn-advance-{{ res.id }}">
+                    Update
+                  </button>
+                </form>
+              {% else %}
+                <span style="font-size: 0.82rem; color: var(--text-dim); font-style: italic;">
+                  Terminal State ({{ res.status }})
+                </span>
+              {% endif %}
+            </td>
+            <td>
+              <a href="{{ url_for('user_bp.booking_details', booking_id=res.id) }}" class="btn btn-secondary btn-sm" id="admin-btn-details-{{ res.id }}">
+                View
+              </a>
+            </td>
+          </tr>
+        {% else %}
+          <tr>
+            <td colspan="8" style="text-align: center; padding: 2.5rem; color: var(--text-muted);">
+              No bookings exist in the database yet.
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Shows Inventory & Live Availability Overview -->
+<div class="card" id="admin-inventory-card">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 1rem;">
+    <h2 class="card-title" style="font-size: 1.25rem; margin-bottom: 0;">Movies Inventory &amp; Live Availability Status</h2>
+    <a href="{{ url_for('admin_bp.create_movie') }}" class="btn btn-primary btn-sm" id="btn-add-movie-table">
+      ➕ Add Movie Show
+    </a>
+  </div>
+
+  <div class="table-wrapper">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Show ID</th>
+          <th>Movie Name</th>
+          <th>Schedule &amp; Screen</th>
+          <th>Rate</th>
+          <th>Live Availability</th>
+          <th>Status</th>
+          <th style="text-align: right;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in resources %}
+          <tr>
+            <td><span class="mono" style="font-weight: 600; color: var(--accent-cyan);">{{ r.id }}</span></td>
+            <td><strong>{{ r.name }}</strong></td>
+            <td>
+              {% if r.schedules %}
+                <div>{{ r.schedules[0].date }} &bull; {{ r.schedules[0].time }}</div>
+                <div style="font-size: 0.8rem; color: var(--text-dim);">{{ r.schedules[0].category }}</div>
+              {% else %}
+                <span style="color: var(--text-dim);">Standard Daily</span>
+              {% endif %}
+            </td>
+            <td><span class="mono">Rs.{{ "%.2f"|format(r.rate) }}</span></td>
+            <td>
+              {% if r.availability > 0 %}
+                <span class="badge badge-available">{{ r.availability }} seats</span>
+              {% else %}
+                <span class="badge badge-soldout">0 (Sold Out)</span>
+              {% endif %}
+            </td>
+            <td>
+              <span class="badge {{ 'badge-available' if r.status == 'ACTIVE' else 'badge-soldout' }}">
+                {{ r.status }}
+              </span>
+            </td>
+            <td style="text-align: right;">
+              <div style="display: inline-flex; gap: 0.35rem;">
+                <form method="POST" action="{{ url_for('admin_bp.toggle_movie_status', movie_id=r.id) }}" style="display: inline;">
+                  <button type="submit" class="btn btn-secondary btn-sm" title="Toggle Active/Inactive">
+                    {{ 'Deactivate' if r.status == 'ACTIVE' else 'Activate' }}
+                  </button>
+                </form>
+                <form method="POST" action="{{ url_for('admin_bp.delete_movie', movie_id=r.id) }}" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this movie?');">
+                  <button type="submit" class="btn btn-danger btn-sm" title="Delete Movie">
+                    Delete
+                  </button>
+                </form>
+              </div>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
